@@ -34,7 +34,27 @@ CONNECTION (only TFT, not SD card):
 Note for Teensy3.x
 CS & DC can use pins 2, 6, 9, 10, 15, 20, 21, 22, 23
 but certain pairs must NOT be used: 2+10, 6+9, 20+23, 21+22
+
+Following, I include the original text header for the Adafruit ST7735 library
+as requested by Adafruit for redistributions.
  **********************************************************/
+ /***************************************************
+  This is a library for the Adafruit 1.8" SPI display.
+  This library works with the Adafruit 1.8" TFT Breakout w/SD card
+  ----> http://www.adafruit.com/products/358
+  as well as Adafruit raw 1.8" TFT display
+  ----> http://www.adafruit.com/products/618
+ 
+  Check out the links above for our tutorials and wiring diagrams
+  These displays use SPI to communicate, 4 or 5 pins are required to
+  interface (RST is optional)
+  Adafruit invests time and resources providing this open source code,
+  please support Adafruit and open-source hardware by purchasing
+  products from Adafruit!
+
+  Written by Limor Fried/Ladyada for Adafruit Industries.
+  MIT license, all text above must be included in any redistribution
+ ****************************************************/
 
 #ifndef TFT_S6D02A1_h
 #define TFT_S6D02A1_h

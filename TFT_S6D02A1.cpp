@@ -1,4 +1,60 @@
+/***********************************************************************
+A fast driver for Teesy3.x/Due and Arduinos for drive 
+Samsung S6D02A1 TFT displays as those:
+http://www.ebay.com/itm/370987651121
+http://www.ebay.com/itm/141341180758
 
+those displays are cheaper than ST7735 but not compatible
+so they need a different initialization and have a pin called BL
+that permit display blanking (not present on ST7735.
+They are equipped with SD card as well but circuit it's separate
+so you will need a library for that (like SDFat), good thing you
+can share MOSI and SCK pin so you only will need a CS pin for that.
+Those displays can operate at 5V or 3V3 by an onboard jumper, 
+if you want to use at 5V with a 5V Micro (like UNO) you will need
+a 1K resistor between every line from micro to TFT!
+Library was written originally by Limor Fried of Adafruit for their
+ST7735 display product and adapted to high speed Teensy3.x by Paul Stoffregen
+and others for DUE. I just modified as well for S6D02A1 initializations and
+support BL pin.
+
+You will need the standard Adafruit_GFX library as well.
+
+
+CONNECTION (only TFT, not SD card):
+1-RST ---> Reset Pin
+2-CE  ---> SPI SS pin (check witch micro pin you can use!)
+3-D/C ---> Data/Command (check witch micro pin you can use!)
+4-DIN ---> Mosi
+5-CLK ---> SCK
+6-UCC ---> 5V or 3V3 (check TFT jumper)
+7-BL  ---> Blanking (if you will not use, connect to VCC!!!!)
+8-GND ---> Ground (of course)
+
+Note for Teensy3.x
+CS & DC can use pins 2, 6, 9, 10, 15, 20, 21, 22, 23
+but certain pairs must NOT be used: 2+10, 6+9, 20+23, 21+22
+
+Following, I include the original text header for the Adafruit ST7735 library
+as requested by Adafruit for redistributions.
+ **********************************************************/
+ /***************************************************
+  This is a library for the Adafruit 1.8" SPI display.
+  This library works with the Adafruit 1.8" TFT Breakout w/SD card
+  ----> http://www.adafruit.com/products/358
+  as well as Adafruit raw 1.8" TFT display
+  ----> http://www.adafruit.com/products/618
+ 
+  Check out the links above for our tutorials and wiring diagrams
+  These displays use SPI to communicate, 4 or 5 pins are required to
+  interface (RST is optional)
+  Adafruit invests time and resources providing this open source code,
+  please support Adafruit and open-source hardware by purchasing
+  products from Adafruit!
+
+  Written by Limor Fried/Ladyada for Adafruit Industries.
+  MIT license, all text above must be included in any redistribution
+ ****************************************************/
 
 #include "TFT_S6D02A1.h"
 #include <limits.h>
