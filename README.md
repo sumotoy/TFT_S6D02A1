@@ -7,3 +7,20 @@ I modified Adafruit_ST7735 library so now this display works amazing fast with 3
 Those displays can work at 5V or 3V3 but if you work with Arduino UNO or 5V level processor you need to put a 1K resistor between
 any display/cpu connection!
 If you don't need to deal with blanking pin, connect it to VCC.
+
+You will need the standard Adafruit_GFX library as well.
+
+
+CONNECTION (only TFT, not SD card):
+1-RST ---> Reset Pin
+2-CE  ---> SPI SS pin (check witch micro pin you can use!)
+3-D/C ---> Data/Command (check witch micro pin you can use!)
+4-DIN ---> Mosi
+5-CLK ---> SCK
+6-UCC ---> 5V or 3V3 (check TFT jumper)
+7-BL  ---> Blanking (if you will not use, connect to VCC!!!!)
+8-GND ---> Ground (of course)
+
+Note for Teensy3.x
+CS & DC can use pins 2, 6, 9, 10, 15, 20, 21, 22, 23
+but certain pairs must NOT be used: 2+10, 6+9, 20+23, 21+22
