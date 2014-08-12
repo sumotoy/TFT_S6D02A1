@@ -1,4 +1,40 @@
+/***********************************************************************
+A fast driver for Teesy3.x/Due and Arduinos for drive 
+Samsung S6D02A1 TFT displays as those:
+http://www.ebay.com/itm/370987651121
+http://www.ebay.com/itm/141341180758
 
+those displays are cheaper than ST7735 but not compatible
+so they need a different initialization and have a pin called BL
+that permit display blanking (not present on ST7735.
+They are equipped with SD card as well but circuit it's separate
+so you will need a library for that (like SDFat), good thing you
+can share MOSI and SCK pin so you only will need a CS pin for that.
+Those displays can operate at 5V or 3V3 by an onboard jumper, 
+if you want to use at 5V with a 5V Micro (like UNO) you will need
+a 1K resistor between every line from micro to TFT!
+Library was written originally by Limor Fried of Adafruit for their
+ST7735 display product and adapted to high speed Teensy3.x by Paul Stoffregen
+and others for DUE. I just modified as well for S6D02A1 initializations and
+support BL pin.
+
+You will need the standard Adafruit_GFX library as well.
+
+
+CONNECTION (only TFT, not SD card):
+1-RST ---> Reset Pin
+2-CE  ---> SPI SS pin (check witch micro pin you can use!)
+3-D/C ---> Data/Command (check witch micro pin you can use!)
+4-DIN ---> Mosi
+5-CLK ---> SCK
+6-UCC ---> 5V or 3V3 (check TFT jumper)
+7-BL  ---> Blanking (if you will not use, connect to VCC!!!!)
+8-GND ---> Ground (of course)
+
+Note for Teensy3.x
+CS & DC can use pins 2, 6, 9, 10, 15, 20, 21, 22, 23
+but certain pairs must NOT be used: 2+10, 6+9, 20+23, 21+22
+ **********************************************************/
 
 #ifndef TFT_S6D02A1_h
 #define TFT_S6D02A1_h
