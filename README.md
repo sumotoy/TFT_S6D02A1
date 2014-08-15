@@ -13,6 +13,10 @@ If you don't need to deal with blanking pin, connect it to VCC.
 You will need the standard Adafruit_GFX library as well.<br>
 <br>
 Note that many examples uses <b>Arm_Math</b> for Teensy3 so cannot be used with different micros!<br>
+On Ebay you can find here (I'm not affiliated in any way)<br>
+http://www.ebay.com/itm/370987651121 <br>
+http://www.ebay.com/itm/141341180758 <br>
+
 
 CONNECTION (only TFT, not SD card):<br>
 1-RST ---> Reset Pin<br>
