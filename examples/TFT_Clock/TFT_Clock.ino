@@ -1,10 +1,20 @@
+/*
+  An example analogue/digital clock using a TFT LCD screen to show the 
+ use of some of the drawing commands with the TFT_S6D02A1 library.
+ For a more accurate clock, it would be better to use the RTClib library.
+ But this is just a demo. 
+ 
+ This examples uses the hardware SPI only. Non-hardware SPI
+ is just too slow (~8 times slower!)
+ 
+ Gilchrist 6/2/2014 1.0
+ */
 
-
-
+#define sclk 13  // Don't change
+#define mosi 11  // Don't change
 #define cs   20
 #define dc   2
-#define rst  14  
-
+#define rst  14  // you can also connect this to the Arduino reset
 #include <Adafruit_GFX.h>    // Core graphics library
 #include <TFT_S6D02A1.h> // Hardware-specific library
 #include <SPI.h>

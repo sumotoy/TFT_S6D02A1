@@ -4,6 +4,8 @@ Samsung S6D02A1 TFT displays as those:
 http://www.ebay.com/itm/370987651121
 http://www.ebay.com/itm/141341180758
 
+Version 1.0b1
+
 those displays are cheaper than ST7735 but not compatible
 so they need a different initialization and have a pin called BL
 that permit display blanking (not present on ST7735.
@@ -67,6 +69,7 @@ as requested by Adafruit for redistributions.
 #endif
 
 #include <Adafruit_GFX.h>
+#include <colorScales.c> // 
 
 #if defined(__SAM3X8E__)
 #include <include/pio.h>
@@ -128,12 +131,17 @@ class TFT_S6D02A1 : public Adafruit_GFX {
            fillRect(int16_t x, int16_t y, int16_t w, int16_t h, uint16_t color),
            setRotation(uint8_t r),
            invertDisplay(boolean i),
-		   backlight(uint8_t val=1);
+		   backlight(uint8_t val=1),
+		   fillMulticolorRect(int16_t x, int16_t y, int16_t w, int16_t h,uint8_t max_,uint8_t scaleType),
+		   barVert(int16_t x, int16_t y, int16_t w, int16_t l, uint16_t color),
+		   barHor(int16_t x, int16_t y, int16_t w, int16_t l, uint16_t color);
+   uint16_t decodeCScale(uint8_t val,uint8_t divVal,uint8_t scale);
 
   // Pass 8-bit (each) R,G,B, get back 16-bit packed color
   inline uint16_t Color565(uint8_t r, uint8_t g, uint8_t b) {
            return ((b & 0xF8) << 8) | ((g & 0xFC) << 3) | (r >> 3);
   }
+  inline uint16_t Color24To565(int32_t color_) { return Color565((color_ & 0xFF),((color_ >> 8) & 0xFF),((color_ >> 16) & 0xFF));}
   void setBitrate(uint32_t n);
 
  private:

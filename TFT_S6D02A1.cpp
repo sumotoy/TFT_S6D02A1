@@ -704,6 +704,74 @@ void TFT_S6D02A1::setRotation(uint8_t m) {
 }
 
 
+void TFT_S6D02A1::fillMulticolorRect(int16_t x, int16_t y, int16_t w, int16_t h,uint8_t max_,uint8_t scaleType) {
+	uint8_t index;
+	//uint16_t colour;
+	if ((x >= _width) || (y >= _height)) return;
+	if ((x + w - 1) >= _width)  w = _width  - x;
+	if ((y + h - 1) >= _height) h = _height - y;
+
+	setAddrWindow(x,y,x+w-1,y+h-1);
+	for (y=h; y>0; y--) {
+		if (scaleType > 0) {
+			index = map(h-y+1,0,max_,10,0);//v bar
+/* 			Serial.print("--> Y:");
+			Serial.print(y,DEC);
+			Serial.print(" / h-y:");
+			Serial.print(h-y+1,DEC);
+			Serial.print(" - max:");
+			Serial.print(max_,DEC);
+			Serial.print(" - idx:");
+			Serial.print(index,DEC);
+			Serial.print("\n"); */
+			for (x=w; x>0; x--) {
+/* 				Serial.print("X:");
+				Serial.print(x,DEC);
+				Serial.print(" / IDX:");
+				Serial.print(index,DEC);
+				Serial.print("\n"); */
+				writedata16(TFTcolorScale_1[index]);
+				//delay(100);
+			}
+		} else {
+			for (x=w; x>0; x--) {
+				if (scaleType < 1) index = map(w-x,0,max_,0,10);//h bar
+				writedata16(TFTcolorScale_1[index]);
+			}
+		}
+		//delay(500);
+	}
+}
+
+uint16_t TFT_S6D02A1::decodeCScale(uint8_t val,uint8_t divVal,uint8_t scale){
+    for (uint8_t i=0;i<11;i++){
+      if (val <= (divVal*i)+i) {
+        //color = tft.Color24To565(colorScale_1[10-cl]);//for 24 bit colors
+        switch(scale){
+           case 0:
+           return TFTcolorScale_1[11-i];
+           case 1:
+           return TFTcolorScale_1[i];
+           default:
+           return TFTcolorScale_1[11-i];
+        }
+      }
+    }
+    return 0xFFFF;
+}
+
+void TFT_S6D02A1::barVert(int16_t x, int16_t y, int16_t w, int16_t l, uint16_t color) {
+	fillTriangle(x+1, y+2*w, x+w, y+w+1, x+2*w-1, y+2*w, color);
+	fillTriangle(x+1, y+2*w+l+1, x+w, y+3*w+l, x+2*w-1, y+2*w+l+1, color);
+	fillRect(x, y+2*w+1, 2*w+1, l, color);
+}
+ 
+void TFT_S6D02A1::barHor(int16_t x, int16_t y, int16_t w, int16_t l, uint16_t color) {
+	fillTriangle(x+2*w, y+2*w-1, x+w+1, y+w, x+2*w, y+1, color);
+	fillTriangle(x+2*w+l+1, y+2*w-1, x+3*w+l, y+w, x+2*w+l+1, y+1, color);
+	fillRect(x+2*w+1, y, l, 2*w+1, color);
+}
+
 void TFT_S6D02A1::invertDisplay(boolean i) {
   writecommand(i ? S6D02A1_INVON : S6D02A1_INVOFF);
 }

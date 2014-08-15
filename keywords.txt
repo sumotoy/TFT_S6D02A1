@@ -1,0 +1,44 @@
+#######################################
+# Syntax Coloring Map For TFT_S6D02A1
+#######################################
+
+#######################################
+# Datatypes (KEYWORD1)
+#######################################
+
+TFT_S6D02A1	KEYWORD1
+
+#######################################
+# Methods and Functions (KEYWORD2)
+#######################################
+
+init	KEYWORD2
+setAddrWindow	KEYWORD2
+pushColor	KEYWORD2
+fillScreen	KEYWORD2
+drawPixel	KEYWORD2
+drawFastVLine	KEYWORD2
+drawFastHLine	KEYWORD2
+fillRect	KEYWORD2
+setRotation	KEYWORD2
+invertDisplay	KEYWORD2
+backlight	KEYWORD2
+Color565	KEYWORD2
+setBitrate	KEYWORD2
+
+
+#######################################
+# Constants (LITERAL1)
+#######################################
+
+S6D02A1_BLACK	LITERAL1
+S6D02A1_RED	LITERAL1
+S6D02A1_GREEN	LITERAL1
+S6D02A1_BLUE	LITERAL1
+S6D02A1_YELLOW	LITERAL1
+S6D02A1_MAGENTA	LITERAL1
+S6D02A1_CYAN	LITERAL1
+S6D02A1_WHITE	LITERAL1
+S6D02A1_GREY	LITERAL1
+S6D02A1_TFTHEIGHT	LITERAL1
+S6D02A1_TFTWIDTH	LITERAL1
