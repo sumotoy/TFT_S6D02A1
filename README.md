@@ -1,5 +1,6 @@
 TFT_S6D02A1
 ===========
+A hyper-fast driver for <b>Samsung S6D02A1</b> drived TFT (128x160) in SPI for Teensy3,DUE and Arduinos.<br>
 
 Version <b>1.0b1</b><br>
 
