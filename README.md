@@ -17,7 +17,11 @@ Note that many examples uses <b>Arm_Math</b> for Teensy3 so cannot be used with 
 On Ebay you can find here (I'm not affiliated in any way)<br>
 http://www.ebay.com/itm/370987651121 <br>
 http://www.ebay.com/itm/141341180758 <br>
+![image](https://github.com/sumotoy/TFT_S6D02A1/blob/master/_documentation/d2.jpg "front")<br>
+![image](https://github.com/sumotoy/TFT_S6D02A1/blob/master/_documentation/d1.jpg "back")<br>
 
+This one looks pretty similar, cost less but pinout are different:<br>
+http://www.ebay.com/itm/351097603564 <br>
 
 CONNECTION (only TFT, not SD card):<br>
 1-RST ---> Reset Pin<br>
