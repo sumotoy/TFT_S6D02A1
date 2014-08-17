@@ -1,11 +1,4 @@
 /***************************************************
- * This is a modification of the Adafruit SPI LCD library example,
- * customised for just hardware SPI and the S6D02A1 board 
- * using a Samsung S6D02A1 chip.
- * Most changes are made to the initialisation routines.
- * CSA 30/1/2014
- * 
-/***************************************************
  * This is an example sketch for the Adafruit 1.8" SPI display.
  * This library works with the Adafruit 1.8" TFT Breakout w/SD card
  * ----> http://www.adafruit.com/products/358
@@ -26,8 +19,7 @@
 // This examples uses the hardware SPI only. Non-hardware SPI
 // is just too slow (~8 times slower!)
 
-#define sclk 13  // Don't change
-#define mosi 11  // Don't change
+
 #define cs   20
 #define dc   2
 #define rst  14  // you can also connect this to the Arduino reset

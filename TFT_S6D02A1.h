@@ -4,7 +4,7 @@ Samsung S6D02A1 TFT displays as those:
 http://www.ebay.com/itm/370987651121
 http://www.ebay.com/itm/141341180758
 
-Version 1.0b1
+Version 1.0b3
 
 those displays are cheaper than ST7735 but not compatible
 so they need a different initialization and have a pin called BL

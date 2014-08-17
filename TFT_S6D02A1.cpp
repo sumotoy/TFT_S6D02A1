@@ -436,8 +436,8 @@ void TFT_S6D02A1::commonInit(const uint8_t *cmdList) {
   if (_bl > 0){
 	pinMode(_bl, OUTPUT);
 	blport    = portOutputRegister(digitalPinToPort(_bl));
-	blpinmask = digitalPinToBitMask(_bl);
-	*blport   &= ~blpinmask;//off screen
+	blnmask = digitalPinToBitMask(_bl);
+	*blport   &= ~blnmask;//off screen
   }
 
   if(hwSPI) { // Using hardware SPI
@@ -469,8 +469,8 @@ void TFT_S6D02A1::commonInit(const uint8_t *cmdList) {
   if (_bl > 0){
 	pinMode(_bl, OUTPUT);
 	blport    = digitalPinToPort(_bl);
-	blpinmask = digitalPinToBitMask(_bl);
-	blport   ->PIO_CODR  |= blpinmask;//off screen
+	blnmask = digitalPinToBitMask(_bl);
+	blport   ->PIO_CODR  |= blnmask;//off screen
   }
   if(hwSPI) { // Using hardware SPI
     SPI.begin();
@@ -572,17 +572,17 @@ void TFT_S6D02A1::backlight(uint8_t val) {
 	if (_bl > 0){
 		if (val){
 			#ifdef __AVR__
-			*blport |=  blpinmask;
+			*blport |=  blnmask;
 			#elif defined(__SAM3X8E__)
-			blport->PIO_CODR  |=  blpinmask;
+			blport->PIO_CODR  |=  blnmask;
 			#elif defined(__MK20DX128__) || defined(__MK20DX256__)
 			digitalWrite(_bl, HIGH);
 			#endif
 		} else {
 			#ifdef __AVR__
-			*blport &= ~blpinmask;
+			*blport &= ~blnmask;
 			#elif defined(__SAM3X8E__)
-			blport->PIO_SODR  |=  blpinmask;
+			blport->PIO_SODR  |=  blnmask;
 			#elif defined(__MK20DX128__) || defined(__MK20DX256__)
 			digitalWrite(_bl, LOW);
 			#endif
