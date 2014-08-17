@@ -4,7 +4,15 @@ Samsung S6D02A1 TFT displays as those:
 http://www.ebay.com/itm/370987651121
 http://www.ebay.com/itm/141341180758
 
-Version 1.0b3
+Version 1.0b4
+
+Added early experimental support for SPI transaction!
+The support it's basic and not optimized but let you
+use this lib without broke the other devices that use
+SPI transaction. Just use:
+init(); //for use at it was, no SPI transaction
+init(24000000); //use with SPI transaction, speed 24Mhz
+
 
 those displays are cheaper than ST7735 but not compatible
 so they need a different initialization and have a pin called BL
@@ -111,6 +119,23 @@ typedef unsigned char prog_uchar;
 #define S6D02A1_GREY    0x632C
 
 
+#define MADCTL_MY  0x80
+#define MADCTL_MX  0x40
+#define MADCTL_MV  0x20
+#define MADCTL_ML  0x10
+#define MADCTL_RGB 0x00
+#define MADCTL_BGR 0x08
+#define MADCTL_MH  0x04
+
+#if defined(__MK20DX128__) || defined(__MK20DX256__)
+#define CTAR_24MHz   (SPI_CTAR_PBR(0) | SPI_CTAR_BR(0) | SPI_CTAR_CSSCK(0) | SPI_CTAR_DBR)
+#define CTAR_16MHz   (SPI_CTAR_PBR(1) | SPI_CTAR_BR(0) | SPI_CTAR_CSSCK(0) | SPI_CTAR_DBR)
+#define CTAR_12MHz   (SPI_CTAR_PBR(0) | SPI_CTAR_BR(0) | SPI_CTAR_CSSCK(0))
+#define CTAR_8MHz    (SPI_CTAR_PBR(1) | SPI_CTAR_BR(0) | SPI_CTAR_CSSCK(0))
+#define CTAR_6MHz    (SPI_CTAR_PBR(0) | SPI_CTAR_BR(1) | SPI_CTAR_CSSCK(1))
+#define CTAR_4MHz    (SPI_CTAR_PBR(1) | SPI_CTAR_BR(1) | SPI_CTAR_CSSCK(1))
+#endif
+
 class TFT_S6D02A1 : public Adafruit_GFX {
 
  public:
@@ -121,7 +146,7 @@ class TFT_S6D02A1 : public Adafruit_GFX {
   TFT_S6D02A1(uint8_t CS, uint8_t RS, uint8_t RST);
   TFT_S6D02A1(uint8_t CS, uint8_t RS);
 
-  void     init(),
+  void     init(long spiTransaction=0,bool avoidSpiInit=0),
            setAddrWindow(uint8_t x0, uint8_t y0, uint8_t x1, uint8_t y1),
            pushColor(uint16_t color),
            fillScreen(uint16_t color),
@@ -153,10 +178,10 @@ class TFT_S6D02A1 : public Adafruit_GFX {
            writedata(uint8_t d),
            writedata16(uint16_t d),
            commandList(const uint8_t *addr),
-           commonInit(const uint8_t *cmdList);
+           commonInit(const uint8_t *cmdList,bool avoidInit);
            
   boolean  hwSPI;
-
+  long  	_spiTransactionSpeed;
 #if defined(__AVR__)
 volatile uint8_t *dataport, *clkport, *csport, *rsport, *blport;
   uint8_t  _bl, _cs, _rs, _rst, _sid, _sclk,

@@ -248,8 +248,7 @@ inline void TFT_S6D02A1::writebegin()
 {
 }
 
-inline void TFT_S6D02A1::spiwrite(uint8_t c)
-{
+inline void TFT_S6D02A1::spiwrite(uint8_t c){
 	for (uint8_t bit = 0x80; bit; bit >>= 1) {
 		*datapin = ((c & bit) ? 1 : 0);
 		*clkpin = 1;
@@ -257,11 +256,31 @@ inline void TFT_S6D02A1::spiwrite(uint8_t c)
 	}
 }
 
-void TFT_S6D02A1::writecommand(uint8_t c)
-{
+void TFT_S6D02A1::writecommand(uint8_t c){
 	if (hwSPI) {
-		SPI0.PUSHR = c | (pcs_command << 16) | SPI_PUSHR_CTAS(0);
-		while (((SPI0.SR) & (15 << 12)) > (3 << 12)) ; // wait if FIFO full
+		if (_spiTransactionSpeed > 0){
+			//TODO
+			#ifdef SPI_HAS_TRANSACTION
+			SPI.beginTransaction(SPISettings(_spiTransactionSpeed, MSBFIRST, SPI_MODE0));
+			#else
+			noInterrupts();
+			#endif
+			//digitalWriteFast(_cs, LOW);
+			//digitalWriteFast(_rs, LOW);
+			*rspin = 0;
+			*cspin = 0;
+			SPI.transfer(c);
+			//digitalWriteFast(_cs, HIGH);
+			*cspin = 1;
+			#ifdef SPI_HAS_TRANSACTION
+			SPI.endTransaction();
+			#else
+			interrupts();
+			#endif
+		} else {
+			SPI0.PUSHR = c | (pcs_command << 16) | SPI_PUSHR_CTAS(0);
+			while (((SPI0.SR) & (15 << 12)) > (3 << 12)) ; // wait if FIFO full
+		}
 	} else {
 		*rspin = 0;
 		*cspin = 0;
@@ -270,11 +289,31 @@ void TFT_S6D02A1::writecommand(uint8_t c)
 	}
 }
 
-void TFT_S6D02A1::writedata(uint8_t c)
-{
+void TFT_S6D02A1::writedata(uint8_t c){
 	if (hwSPI) {
-		SPI0.PUSHR = c | (pcs_data << 16) | SPI_PUSHR_CTAS(0);
-		while (((SPI0.SR) & (15 << 12)) > (3 << 12)) ; // wait if FIFO full
+		if (_spiTransactionSpeed > 0){
+			//TODO
+			#ifdef SPI_HAS_TRANSACTION
+			SPI.beginTransaction(SPISettings(_spiTransactionSpeed, MSBFIRST, SPI_MODE0));
+			#else
+			noInterrupts();
+			#endif
+			//digitalWriteFast(_cs, LOW);
+			//digitalWriteFast(_rs, HIGH);
+			*rspin = 1;
+			*cspin = 0;
+			SPI.transfer(c);
+			//digitalWriteFast(_cs, HIGH);
+			*cspin = 1;
+			#ifdef SPI_HAS_TRANSACTION
+			SPI.endTransaction();
+			#else
+			interrupts();
+			#endif
+		} else {
+			SPI0.PUSHR = c | (pcs_data << 16) | SPI_PUSHR_CTAS(0);
+			while (((SPI0.SR) & (15 << 12)) > (3 << 12)) ; // wait if FIFO full
+		}
 	} else {
 		*rspin = 1;
 		*cspin = 0;
@@ -283,11 +322,32 @@ void TFT_S6D02A1::writedata(uint8_t c)
 	}
 }
 
-void TFT_S6D02A1::writedata16(uint16_t d)
-{
+void TFT_S6D02A1::writedata16(uint16_t d){
 	if (hwSPI) {
-		SPI0.PUSHR = d | (pcs_data << 16) | SPI_PUSHR_CTAS(1);
-		while (((SPI0.SR) & (15 << 12)) > (3 << 12)) ; // wait if FIFO full
+		if (_spiTransactionSpeed > 0){
+			//TODO
+			#ifdef SPI_HAS_TRANSACTION
+			SPI.beginTransaction(SPISettings(_spiTransactionSpeed, MSBFIRST, SPI_MODE0));
+			#else
+			noInterrupts();
+			#endif
+			//digitalWriteFast(_cs, LOW);
+			//digitalWriteFast(_rs, HIGH);
+			*rspin = 1;
+			*cspin = 0;
+			SPI.transfer(d >> 8);
+			SPI.transfer(d);
+			//digitalWriteFast(_cs, HIGH);
+			*cspin = 1;
+			#ifdef SPI_HAS_TRANSACTION
+			SPI.endTransaction();
+			#else
+			interrupts();
+			#endif
+		} else {
+			SPI0.PUSHR = d | (pcs_data << 16) | SPI_PUSHR_CTAS(1);
+			while (((SPI0.SR) & (15 << 12)) > (3 << 12)) ; // wait if FIFO full
+		}
 	} else {
 		*rspin = 1;
 		*cspin = 0;
@@ -297,39 +357,30 @@ void TFT_S6D02A1::writedata16(uint16_t d)
 	}
 }
 
-static bool spi_pin_is_cs(uint8_t pin)
-{
+static bool spi_pin_is_cs(uint8_t pin){
 	if (pin == 2 || pin == 6 || pin == 9) return true;
 	if (pin == 10 || pin == 15) return true;
 	if (pin >= 20 && pin <= 23) return true;
 	return false;
 }
 
-static uint8_t spi_configure_cs_pin(uint8_t pin)
-{
-        switch (pin) {
-                case 10: CORE_PIN10_CONFIG = PORT_PCR_MUX(2); return 0x01; // PTC4
-                case 2:  CORE_PIN2_CONFIG  = PORT_PCR_MUX(2); return 0x01; // PTD0
-                case 9:  CORE_PIN9_CONFIG  = PORT_PCR_MUX(2); return 0x02; // PTC3
-                case 6:  CORE_PIN6_CONFIG  = PORT_PCR_MUX(2); return 0x02; // PTD4
-                case 20: CORE_PIN20_CONFIG = PORT_PCR_MUX(2); return 0x04; // PTD5
-                case 23: CORE_PIN23_CONFIG = PORT_PCR_MUX(2); return 0x04; // PTC2
-                case 21: CORE_PIN21_CONFIG = PORT_PCR_MUX(2); return 0x08; // PTD6
-                case 22: CORE_PIN22_CONFIG = PORT_PCR_MUX(2); return 0x08; // PTC1
-                case 15: CORE_PIN15_CONFIG = PORT_PCR_MUX(2); return 0x10; // PTC0
-        }
-        return 0;
+static uint8_t spi_configure_cs_pin(uint8_t pin){
+    switch (pin) {
+        case 10: CORE_PIN10_CONFIG = PORT_PCR_MUX(2); return 0x01; // PTC4
+        case 2:  CORE_PIN2_CONFIG  = PORT_PCR_MUX(2); return 0x01; // PTD0
+        case 9:  CORE_PIN9_CONFIG  = PORT_PCR_MUX(2); return 0x02; // PTC3
+        case 6:  CORE_PIN6_CONFIG  = PORT_PCR_MUX(2); return 0x02; // PTD4
+        case 20: CORE_PIN20_CONFIG = PORT_PCR_MUX(2); return 0x04; // PTD5
+        case 23: CORE_PIN23_CONFIG = PORT_PCR_MUX(2); return 0x04; // PTC2
+        case 21: CORE_PIN21_CONFIG = PORT_PCR_MUX(2); return 0x08; // PTD6
+        case 22: CORE_PIN22_CONFIG = PORT_PCR_MUX(2); return 0x08; // PTC1
+        case 15: CORE_PIN15_CONFIG = PORT_PCR_MUX(2); return 0x10; // PTC0
+    }
+    return 0;
 }
 
-#define CTAR_24MHz   (SPI_CTAR_PBR(0) | SPI_CTAR_BR(0) | SPI_CTAR_CSSCK(0) | SPI_CTAR_DBR)
-#define CTAR_16MHz   (SPI_CTAR_PBR(1) | SPI_CTAR_BR(0) | SPI_CTAR_CSSCK(0) | SPI_CTAR_DBR)
-#define CTAR_12MHz   (SPI_CTAR_PBR(0) | SPI_CTAR_BR(0) | SPI_CTAR_CSSCK(0))
-#define CTAR_8MHz    (SPI_CTAR_PBR(1) | SPI_CTAR_BR(0) | SPI_CTAR_CSSCK(0))
-#define CTAR_6MHz    (SPI_CTAR_PBR(0) | SPI_CTAR_BR(1) | SPI_CTAR_CSSCK(1))
-#define CTAR_4MHz    (SPI_CTAR_PBR(1) | SPI_CTAR_BR(1) | SPI_CTAR_CSSCK(1))
 
-void TFT_S6D02A1::setBitrate(uint32_t n)
-{
+void TFT_S6D02A1::setBitrate(uint32_t n){
 	if (n >= 24000000) {
 		ctar = CTAR_24MHz;
 	} else if (n >= 16000000) {
@@ -399,131 +450,151 @@ static const uint8_t PROGMEM	// Multiple LCD init commands removed
 // Companion code to the above tables.  Reads and issues
 // a series of LCD commands stored in PROGMEM byte array.
 void TFT_S6D02A1::commandList(const uint8_t *addr) {
+	uint8_t  numCommands, numArgs;
+	uint16_t ms;
 
-  uint8_t  numCommands, numArgs;
-  uint16_t ms;
-
-  numCommands = pgm_read_byte(addr++);   // Number of commands to follow
+	numCommands = pgm_read_byte(addr++);   // Number of commands to follow
   
-  while(numCommands--) {                 // For each command...
-	writecommand(pgm_read_byte(addr++)); //   Read, issue command
-    numArgs  = pgm_read_byte(addr++);    //   Number of args to follow
-    ms       = numArgs & DELAY;          //   If hibit set, delay follows args
-    numArgs &= ~DELAY;                   //   Mask out delay bit
-    while(numArgs--) {                   //   For each argument...
-      writedata(pgm_read_byte(addr++));  //     Read, issue argument
-    }
-    if(ms) {
-      ms = pgm_read_byte(addr++); // Read post-command delay time (ms)
-      if(ms == 255) ms = 500;     // If 255, delay for 500 ms
-      delay(ms);
-    }
-  }
+	while (numCommands--) {                 // For each command...
+		writecommand(pgm_read_byte(addr++)); //   Read, issue command
+		numArgs  = pgm_read_byte(addr++);    //   Number of args to follow
+		ms       = numArgs & DELAY;          //   If hibit set, delay follows args
+		numArgs &= ~DELAY;                   //   Mask out delay bit
+		while (numArgs--) {                   //   For each argument...
+			writedata(pgm_read_byte(addr++));  //     Read, issue argument
+		}
+		if (ms) {
+			ms = pgm_read_byte(addr++); // Read post-command delay time (ms)
+			if (ms == 255) ms = 500;     // If 255, delay for 500 ms
+			delay(ms);
+		}
+	}
 }
 
 
 // Initialization code for  S6D02A1 displays
-void TFT_S6D02A1::commonInit(const uint8_t *cmdList) {
-  colstart  = rowstart = 0; // May be overridden in init func
+void TFT_S6D02A1::commonInit(const uint8_t *cmdList,bool avoidSpiInit) {
+	colstart  = rowstart = 0; // May be overridden in init func
   
 #ifdef __AVR__
-  pinMode(_rs, OUTPUT);
-  pinMode(_cs, OUTPUT);
-  csport    = portOutputRegister(digitalPinToPort(_cs));
-  rsport    = portOutputRegister(digitalPinToPort(_rs));
-  cspinmask = digitalPinToBitMask(_cs);
-  rspinmask = digitalPinToBitMask(_rs);
-  if (_bl > 0){
-	pinMode(_bl, OUTPUT);
-	blport    = portOutputRegister(digitalPinToPort(_bl));
-	blnmask = digitalPinToBitMask(_bl);
-	*blport   &= ~blnmask;//off screen
-  }
+	pinMode(_rs, OUTPUT);
+	pinMode(_cs, OUTPUT);
+	csport    = portOutputRegister(digitalPinToPort(_cs));
+	rsport    = portOutputRegister(digitalPinToPort(_rs));
+	cspinmask = digitalPinToBitMask(_cs);
+	rspinmask = digitalPinToBitMask(_rs);
+	if (_bl > 0){
+		pinMode(_bl, OUTPUT);
+		blport    = portOutputRegister(digitalPinToPort(_bl));
+		blnmask = digitalPinToBitMask(_bl);
+		*blport   &= ~blnmask;//off screen
+	}
 
-  if(hwSPI) { // Using hardware SPI
-    SPI.begin();
-    SPI.setClockDivider(SPI_CLOCK_DIV4); // 4 MHz (half speed)
-    //Due defaults to 4mHz (clock divider setting of 21)
-    SPI.setBitOrder(MSBFIRST);
-    SPI.setDataMode(SPI_MODE0);
-  } else {
-    pinMode(_sclk, OUTPUT);
-    pinMode(_sid , OUTPUT);
-    clkport     = portOutputRegister(digitalPinToPort(_sclk));
-    dataport    = portOutputRegister(digitalPinToPort(_sid));
-    clkpinmask  = digitalPinToBitMask(_sclk);
-    datapinmask = digitalPinToBitMask(_sid);
-    *clkport   &= ~clkpinmask;
-    *dataport  &= ~datapinmask;
-  }
-  // toggle RST low to reset; CS low so it'll listen to us
-  *csport &= ~cspinmask;
+	if (hwSPI) { // Using hardware SPI
+		SPI.begin();
+		SPI.setClockDivider(SPI_CLOCK_DIV4); // 4 MHz (half speed)
+		//Due defaults to 4mHz (clock divider setting of 21)
+		SPI.setBitOrder(MSBFIRST);
+		SPI.setDataMode(SPI_MODE0);
+	} else {
+		pinMode(_sclk, OUTPUT);
+		pinMode(_sid , OUTPUT);
+		clkport     = portOutputRegister(digitalPinToPort(_sclk));
+		dataport    = portOutputRegister(digitalPinToPort(_sid));
+		clkpinmask  = digitalPinToBitMask(_sclk);
+		datapinmask = digitalPinToBitMask(_sid);
+		*clkport   &= ~clkpinmask;
+		*dataport  &= ~datapinmask;
+	}
+	// toggle RST low to reset; CS low so it'll listen to us
+	*csport &= ~cspinmask;
   
 #elif defined(__SAM3X8E__)
-  pinMode(_rs, OUTPUT);
-  pinMode(_cs, OUTPUT);
-  csport    = digitalPinToPort(_cs);
-  rsport    = digitalPinToPort(_rs);
-  cspinmask = digitalPinToBitMask(_cs);
-  rspinmask = digitalPinToBitMask(_rs);
-  if (_bl > 0){
-	pinMode(_bl, OUTPUT);
-	blport    = digitalPinToPort(_bl);
-	blnmask = digitalPinToBitMask(_bl);
-	blport   ->PIO_CODR  |= blnmask;//off screen
-  }
-  if(hwSPI) { // Using hardware SPI
-    SPI.begin();
-    SPI.setClockDivider(21); // 4 MHz
-    //Due defaults to 4mHz (clock divider setting of 21), but we'll set it anyway 
-    SPI.setBitOrder(MSBFIRST);
-    SPI.setDataMode(SPI_MODE0);
-  } else {
-    pinMode(_sclk, OUTPUT);
-    pinMode(_sid , OUTPUT);
-    clkport     = digitalPinToPort(_sclk);
-    dataport    = digitalPinToPort(_sid);
-    clkpinmask  = digitalPinToBitMask(_sclk);
-    datapinmask = digitalPinToBitMask(_sid);
-    clkport ->PIO_CODR  |=  clkpinmask; // Set control bits to LOW (idle)
-    dataport->PIO_CODR  |=  datapinmask; // Signals are ACTIVE HIGH
-  }
-  // toggle RST low to reset; CS low so it'll listen to us
-  csport ->PIO_CODR  |=  cspinmask; // Set control bits to LOW (idle)
+	pinMode(_rs, OUTPUT);
+	pinMode(_cs, OUTPUT);
+	csport    = digitalPinToPort(_cs);
+	rsport    = digitalPinToPort(_rs);
+	cspinmask = digitalPinToBitMask(_cs);
+	rspinmask = digitalPinToBitMask(_rs);
+	if (_bl > 0){
+		pinMode(_bl, OUTPUT);
+		blport    = digitalPinToPort(_bl);
+		blnmask = digitalPinToBitMask(_bl);
+		blport   ->PIO_CODR  |= blnmask;//off screen
+	}
+	if (hwSPI) { // Using hardware SPI
+		SPI.begin();
+		SPI.setClockDivider(21); // 4 MHz
+		//Due defaults to 4mHz (clock divider setting of 21), but we'll set it anyway 
+		SPI.setBitOrder(MSBFIRST);
+		SPI.setDataMode(SPI_MODE0);
+	} else {
+		pinMode(_sclk, OUTPUT);
+		pinMode(_sid , OUTPUT);
+		clkport     = digitalPinToPort(_sclk);
+		dataport    = digitalPinToPort(_sid);
+		clkpinmask  = digitalPinToBitMask(_sclk);
+		datapinmask = digitalPinToBitMask(_sid);
+		clkport ->PIO_CODR  |=  clkpinmask; // Set control bits to LOW (idle)
+		dataport->PIO_CODR  |=  datapinmask; // Signals are ACTIVE HIGH
+	}
+	// toggle RST low to reset; CS low so it'll listen to us
+	csport ->PIO_CODR  |=  cspinmask; // Set control bits to LOW (idle)
   
 #elif defined(__MK20DX128__) || defined(__MK20DX256__)
+
 	if (_sid == 0) _sid = 11;
 	if (_sclk == 0) _sclk = 13;
 	if ( spi_pin_is_cs(_cs) && spi_pin_is_cs(_rs)
-	 && (_sid == 7 || _sid == 11)
-	 && (_sclk == 13 || _sclk == 14)
-	 && !(_cs ==  2 && _rs == 10) && !(_rs ==  2 && _cs == 10)
-	 && !(_cs ==  6 && _rs ==  9) && !(_rs ==  6 && _cs ==  9)
-	 && !(_cs == 20 && _rs == 23) && !(_rs == 20 && _cs == 23)
-	 && !(_cs == 21 && _rs == 22) && !(_rs == 21 && _cs == 22) ) {
+		&& (_sid == 7 || _sid == 11)
+		&& (_sclk == 13 || _sclk == 14)
+		&& !(_cs ==  2 && _rs == 10) && !(_rs ==  2 && _cs == 10)
+		&& !(_cs ==  6 && _rs ==  9) && !(_rs ==  6 && _cs ==  9)
+		&& !(_cs == 20 && _rs == 23) && !(_rs == 20 && _cs == 23)
+		&& !(_cs == 21 && _rs == 22) && !(_rs == 21 && _cs == 22) ) {
 		hwSPI = true;
-		if (_sclk == 13) {
-			CORE_PIN13_CONFIG = PORT_PCR_MUX(2) | PORT_PCR_DSE;
-			SPCR.setSCK(13);
+		if (_spiTransactionSpeed > 0){//use slower and compatible spiTransaction
+			//TODO
+			cspin = portOutputRegister(digitalPinToPort(_cs));
+			rspin = portOutputRegister(digitalPinToPort(_rs));
+			*cspin = 1;
+			*rspin = 0;
+			pinMode(_cs, OUTPUT);
+			pinMode(_rs, OUTPUT);
+			#ifdef SPI_HAS_TRANSACTION
+			//digitalWriteFast(_cs, HIGH);
+			*cspin = 1;
+			#else
+			interrupts();
+			SPI.setDataMode(SPI_MODE0);
+			SPI.setBitOrder(MSBFIRST);
+			SPI.setClockDivider(SPI_CLOCK_DIV2); //max speed, except on Due which can run at system clock speed
+			#endif
+			SPI.begin();
 		} else {
-			CORE_PIN14_CONFIG = PORT_PCR_MUX(2);
-			SPCR.setSCK(14);
+			if (_sclk == 13) {
+				CORE_PIN13_CONFIG = PORT_PCR_MUX(2) | PORT_PCR_DSE;
+				SPCR.setSCK(13);
+			} else {
+				CORE_PIN14_CONFIG = PORT_PCR_MUX(2);
+				SPCR.setSCK(14);
+			}
+			if (_sid == 11) {
+				CORE_PIN11_CONFIG = PORT_PCR_MUX(2);
+				SPCR.setMOSI(11);
+			} else {
+				CORE_PIN7_CONFIG = PORT_PCR_MUX(2);
+				SPCR.setMOSI(7);
+			}
+			ctar = CTAR_12MHz;
+			pcs_data = spi_configure_cs_pin(_cs);
+			pcs_command = pcs_data | spi_configure_cs_pin(_rs);
+			SIM_SCGC6 |= SIM_SCGC6_SPI0;
+			SPI0.MCR = SPI_MCR_MDIS | SPI_MCR_HALT;
+			SPI0.CTAR0 = ctar | SPI_CTAR_FMSZ(7);
+			SPI0.CTAR1 = ctar | SPI_CTAR_FMSZ(15);
+			SPI0.MCR = SPI_MCR_MSTR | SPI_MCR_PCSIS(0x1F) | SPI_MCR_CLR_TXF | SPI_MCR_CLR_RXF;
 		}
-		if (_sid == 11) {
-			CORE_PIN11_CONFIG = PORT_PCR_MUX(2);
-			SPCR.setMOSI(11);
-		} else {
-			CORE_PIN7_CONFIG = PORT_PCR_MUX(2);
-			SPCR.setMOSI(7);
-		}
-		ctar = CTAR_12MHz;
-		pcs_data = spi_configure_cs_pin(_cs);
-		pcs_command = pcs_data | spi_configure_cs_pin(_rs);
-		SIM_SCGC6 |= SIM_SCGC6_SPI0;
-		SPI0.MCR = SPI_MCR_MDIS | SPI_MCR_HALT;
-		SPI0.CTAR0 = ctar | SPI_CTAR_FMSZ(7);
-		SPI0.CTAR1 = ctar | SPI_CTAR_FMSZ(15);
-		SPI0.MCR = SPI_MCR_MSTR | SPI_MCR_PCSIS(0x1F) | SPI_MCR_CLR_TXF | SPI_MCR_CLR_RXF;
 	} else {
 		hwSPI = false;
 		cspin = portOutputRegister(digitalPinToPort(_cs));
@@ -560,8 +631,12 @@ void TFT_S6D02A1::commonInit(const uint8_t *cmdList) {
 
 
 // Initialization for S6D02A1 LCD only
-void TFT_S6D02A1::init() {
-	commonInit(0);
+void TFT_S6D02A1::init(long spiTransaction,bool avoidSpiInit) {
+	_spiTransactionSpeed = 0;
+	#if defined(__MK20DX128__) || defined(__MK20DX256__)
+	if (spiTransaction > 0 && spiTransaction <= 24000000) _spiTransactionSpeed = spiTransaction;
+	#endif
+	commonInit(0,avoidSpiInit);
 	commandList(S6D02A1);
 	if (_bl > 0){
 		backlight(1);
@@ -590,117 +665,98 @@ void TFT_S6D02A1::backlight(uint8_t val) {
 	}
 }
 
-void TFT_S6D02A1::setAddrWindow(uint8_t x0, uint8_t y0, uint8_t x1,
- uint8_t y1) {
-
-  writecommand(S6D02A1_CASET); // Column addr set
-  writedata16(x0+colstart);   // XSTART 
-  writedata16(x1+colstart);   // XEND
-  writecommand(S6D02A1_RASET); // Row addr set
-  writedata16(y0+rowstart);   // YSTART
-  writedata16(y1+rowstart);   // YEND
-  writecommand(S6D02A1_RAMWR); // write to RAM
+void TFT_S6D02A1::setAddrWindow(uint8_t x0, uint8_t y0, uint8_t x1, uint8_t y1) {
+	writecommand(S6D02A1_CASET); // Column addr set
+	writedata16(x0+colstart);   // XSTART 
+	writedata16(x1+colstart);   // XEND
+	writecommand(S6D02A1_RASET); // Row addr set
+	writedata16(y0+rowstart);   // YSTART
+	writedata16(y1+rowstart);   // YEND
+	writecommand(S6D02A1_RAMWR); // write to RAM
 }
 
 
 void TFT_S6D02A1::pushColor(uint16_t color) {
-  writebegin();
-  writedata16(color);
+	writebegin();
+	writedata16(color);
  }
 
 void TFT_S6D02A1::drawPixel(int16_t x, int16_t y, uint16_t color) {
-  if((x < 0) ||(x >= _width) || (y < 0) || (y >= _height)) return;
-  setAddrWindow(x,y,x+1,y+1);
-  writedata16(color);
+	if ((x < 0) ||(x >= _width) || (y < 0) || (y >= _height)) return;
+	setAddrWindow(x,y,x+1,y+1);
+	writedata16(color);
 }
 
-void TFT_S6D02A1::drawFastVLine(int16_t x, int16_t y, int16_t h,
- uint16_t color) {
-
-  // Rudimentary clipping
-  if((x >= _width) || (y >= _height)) return;
-  if((y+h-1) >= _height) h = _height-y;
-  setAddrWindow(x, y, x, y+h-1);
-  while (h--) {
-    writedata16(color);
-  }
+void TFT_S6D02A1::drawFastVLine(int16_t x, int16_t y, int16_t h,uint16_t color) {
+	// Rudimentary clipping
+	if ((x >= _width) || (y >= _height)) return;
+	if ((y+h-1) >= _height) h = _height-y;
+	setAddrWindow(x, y, x, y+h-1);
+	while (h--) {
+		writedata16(color);
+	}
 }
 
 
-void TFT_S6D02A1::drawFastHLine(int16_t x, int16_t y, int16_t w,
-  uint16_t color) {
-
-  // Rudimentary clipping
-  if((x >= _width) || (y >= _height)) return;
-  if((x+w-1) >= _width)  w = _width-x;
-  setAddrWindow(x, y, x+w-1, y);
-  while (w--) {
-    writedata16(color);
-  }
+void TFT_S6D02A1::drawFastHLine(int16_t x, int16_t y, int16_t w,uint16_t color) {
+	// Rudimentary clipping
+	if ((x >= _width) || (y >= _height)) return;
+	if ((x+w-1) >= _width)  w = _width-x;
+	setAddrWindow(x, y, x+w-1, y);
+	while (w--) {
+		writedata16(color);
+	}
 }
 
 
 void TFT_S6D02A1::fillScreen(uint16_t color) {
-  fillRect(0, 0,  _width, _height, color);
+	fillRect(0, 0,  _width, _height, color);
 }
 
 
 
 // fill a rectangle
-void TFT_S6D02A1::fillRect(int16_t x, int16_t y, int16_t w, int16_t h,
-  uint16_t color) {
-
-  // rudimentary clipping (drawChar w/big text requires this)
-  if((x >= _width) || (y >= _height)) return;
-  if((x + w - 1) >= _width)  w = _width  - x;
-  if((y + h - 1) >= _height) h = _height - y;
-  setAddrWindow(x, y, x+w-1, y+h-1);
-  for(y=h; y>0; y--) {
-    for(x=w; x>0; x--) {
-      writedata16(color);
-    }
-  }
+void TFT_S6D02A1::fillRect(int16_t x, int16_t y, int16_t w, int16_t h,uint16_t color) {
+	// rudimentary clipping (drawChar w/big text requires this)
+	if ((x >= _width) || (y >= _height)) return;
+	if ((x + w - 1) >= _width)  w = _width  - x;
+	if ((y + h - 1) >= _height) h = _height - y;
+	setAddrWindow(x, y, x+w-1, y+h-1);
+	for (y=h; y>0; y--) {
+		for (x=w; x>0; x--) {
+			writedata16(color);
+		}
+	}
 }
-
-
-
-#define MADCTL_MY  0x80
-#define MADCTL_MX  0x40
-#define MADCTL_MV  0x20
-#define MADCTL_ML  0x10
-#define MADCTL_RGB 0x00
-#define MADCTL_BGR 0x08
-#define MADCTL_MH  0x04
 
 
 void TFT_S6D02A1::setRotation(uint8_t m) {
 // Generally 0 - Portrait 1 - Landscape
-
-  writecommand(S6D02A1_MADCTL);
-  rotation = m % 4; // can't be higher than 3
-  switch (rotation) {
-   case 0:
-     writedata(MADCTL_MX | MADCTL_MY | MADCTL_BGR);
-     _width  = S6D02A1_TFTWIDTH;
-     _height = S6D02A1_TFTHEIGHT;
-     break;
-   case 1:
-     writedata(MADCTL_MY | MADCTL_MV | MADCTL_BGR);
-     _width  = S6D02A1_TFTHEIGHT;
-     _height = S6D02A1_TFTWIDTH;
-     break;
-  case 2:
-     writedata(MADCTL_BGR);
-     _width  = S6D02A1_TFTWIDTH;
-     _height = S6D02A1_TFTHEIGHT;
-    break;
-   case 3:
+	writecommand(S6D02A1_MADCTL);
+	rotation = m % 4; // can't be higher than 3
+	switch (rotation) {
+		case 0:
+			writedata(MADCTL_MX | MADCTL_MY | MADCTL_BGR);
+			_width  = S6D02A1_TFTWIDTH;
+			_height = S6D02A1_TFTHEIGHT;
+		break;
+		case 1:
+			writedata(MADCTL_MY | MADCTL_MV | MADCTL_BGR);
+			_width  = S6D02A1_TFTHEIGHT;
+			_height = S6D02A1_TFTWIDTH;
+		break;
+		case 2:
+			writedata(MADCTL_BGR);
+			_width  = S6D02A1_TFTWIDTH;
+			_height = S6D02A1_TFTHEIGHT;
+		break;
+		case 3:
 //     writedata(MADCTL_MX | MADCTL_MV | MADCTL_RGB);
-     writedata(MADCTL_MX | MADCTL_MV | MADCTL_BGR);
-     _width  = S6D02A1_TFTHEIGHT;
-     _height = S6D02A1_TFTWIDTH;
-     break;
-  }
+			writedata(MADCTL_MX | MADCTL_MV | MADCTL_BGR);
+			_width  = S6D02A1_TFTHEIGHT;
+			_height = S6D02A1_TFTWIDTH;
+		break;
+	}
 }
 
 
@@ -710,7 +766,6 @@ void TFT_S6D02A1::fillMulticolorRect(int16_t x, int16_t y, int16_t w, int16_t h,
 	if ((x >= _width) || (y >= _height)) return;
 	if ((x + w - 1) >= _width)  w = _width  - x;
 	if ((y + h - 1) >= _height) h = _height - y;
-
 	setAddrWindow(x,y,x+w-1,y+h-1);
 	for (y=h; y>0; y--) {
 		if (scaleType > 0) {
