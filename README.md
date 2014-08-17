@@ -2,7 +2,17 @@ TFT_S6D02A1
 ===========
 A hyper-fast driver for <b>Samsung S6D02A1</b> drived TFT (128x160) in SPI for Teensy3,DUE and Arduinos.<br>
 
-Version <b>1.0b1</b><br>
+Version <b>1.0b4</b><br>
+
+Added early experimental support for <b>SPI transaction</b>!<br>
+The support it's basic and not optimized but let you use this lib without broke the other devices that use
+SPI transaction. Just use:<br>
+
+init(); //for use at it was, no SPI transaction<br>
+
+init(24000000); //use with SPI transaction, speed 24Mhz<br>
+
+<br>
 
 I found some TFT on chinese Ebay that was supposed be compatible with ST7735 and of course NOT! I spent a couple of days to discover that was actually
 a Samsung S6D02A1 chip that it's not compatible with ST7735 and actually has one more pin for display blanking.
