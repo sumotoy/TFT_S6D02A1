@@ -692,6 +692,7 @@ void TFT_S6D02A1::drawFastVLine(int16_t x, int16_t y, int16_t h,uint16_t color) 
 	if ((x >= _width) || (y >= _height)) return;
 	if ((y+h-1) >= _height) h = _height-y;
 	setAddrWindow(x, y, x, y+h-1);
+	writecommand(S6D02A1_RAMWR); // write to RAM (OOO)
 	while (h--) {
 		writedata16(color);
 	}
@@ -703,6 +704,7 @@ void TFT_S6D02A1::drawFastHLine(int16_t x, int16_t y, int16_t w,uint16_t color) 
 	if ((x >= _width) || (y >= _height)) return;
 	if ((x+w-1) >= _width)  w = _width-x;
 	setAddrWindow(x, y, x+w-1, y);
+	writecommand(S6D02A1_RAMWR); // write to RAM (OOO)
 	while (w--) {
 		writedata16(color);
 	}
@@ -722,6 +724,7 @@ void TFT_S6D02A1::fillRect(int16_t x, int16_t y, int16_t w, int16_t h,uint16_t c
 	if ((x + w - 1) >= _width)  w = _width  - x;
 	if ((y + h - 1) >= _height) h = _height - y;
 	setAddrWindow(x, y, x+w-1, y+h-1);
+	writecommand(S6D02A1_RAMWR); // write to RAM (OOO)
 	for (y=h; y>0; y--) {
 		for (x=w; x>0; x--) {
 			writedata16(color);

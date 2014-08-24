@@ -181,7 +181,7 @@ class TFT_S6D02A1 : public Adafruit_GFX {
            commonInit(const uint8_t *cmdList,bool avoidInit);
            
   boolean  hwSPI;
-  long  	_spiTransactionSpeed;
+  uint32_t  _spiTransactionSpeed;
 #if defined(__AVR__)
 volatile uint8_t *dataport, *clkport, *csport, *rsport, *blport;
   uint8_t  _bl, _cs, _rs, _rst, _sid, _sclk,
