@@ -278,8 +278,8 @@ void TFT_S6D02A1::writecommand(uint8_t c){
 			interrupts();
 			#endif
 		} else {
-			SPI0.PUSHR = c | (pcs_command << 16) | SPI_PUSHR_CTAS(0);
-			while (((SPI0.SR) & (15 << 12)) > (3 << 12)) ; // wait if FIFO full
+			KINETISK_SPI0.PUSHR = c | (pcs_command << 16) | SPI_PUSHR_CTAS(0);
+			while (((KINETISK_SPI0.SR) & (15 << 12)) > (3 << 12)) ; // wait if FIFO full
 		}
 	} else {
 		*rspin = 0;
@@ -311,8 +311,8 @@ void TFT_S6D02A1::writedata(uint8_t c){
 			interrupts();
 			#endif
 		} else {
-			SPI0.PUSHR = c | (pcs_data << 16) | SPI_PUSHR_CTAS(0);
-			while (((SPI0.SR) & (15 << 12)) > (3 << 12)) ; // wait if FIFO full
+			KINETISK_SPI0.PUSHR = c | (pcs_data << 16) | SPI_PUSHR_CTAS(0);
+			while (((KINETISK_SPI0.SR) & (15 << 12)) > (3 << 12)) ; // wait if FIFO full
 		}
 	} else {
 		*rspin = 1;
@@ -345,8 +345,8 @@ void TFT_S6D02A1::writedata16(uint16_t d){
 			interrupts();
 			#endif
 		} else {
-			SPI0.PUSHR = d | (pcs_data << 16) | SPI_PUSHR_CTAS(1);
-			while (((SPI0.SR) & (15 << 12)) > (3 << 12)) ; // wait if FIFO full
+			KINETISK_SPI0.PUSHR = d | (pcs_data << 16) | SPI_PUSHR_CTAS(1);
+			while (((KINETISK_SPI0.SR) & (15 << 12)) > (3 << 12)) ; // wait if FIFO full
 		}
 	} else {
 		*rspin = 1;
@@ -395,10 +395,10 @@ void TFT_S6D02A1::setBitrate(uint32_t n){
 		ctar = CTAR_4MHz;
 	}
 	SIM_SCGC6 |= SIM_SCGC6_SPI0;
-	SPI0.MCR = SPI_MCR_MDIS | SPI_MCR_HALT;
-	SPI0.CTAR0 = ctar | SPI_CTAR_FMSZ(7);
-	SPI0.CTAR1 = ctar | SPI_CTAR_FMSZ(15);
-	SPI0.MCR = SPI_MCR_MSTR | SPI_MCR_PCSIS(0x1F) | SPI_MCR_CLR_TXF | SPI_MCR_CLR_RXF;
+	KINETISK_SPI0.MCR = SPI_MCR_MDIS | SPI_MCR_HALT;
+	KINETISK_SPI0.CTAR0 = ctar | SPI_CTAR_FMSZ(7);
+	KINETISK_SPI0.CTAR1 = ctar | SPI_CTAR_FMSZ(15);
+	KINETISK_SPI0.MCR = SPI_MCR_MSTR | SPI_MCR_PCSIS(0x1F) | SPI_MCR_CLR_TXF | SPI_MCR_CLR_RXF;
 }
 
 #endif //#if defined(__SAM3X8E__)
@@ -590,10 +590,10 @@ void TFT_S6D02A1::commonInit(const uint8_t *cmdList,bool avoidSpiInit) {
 			pcs_data = spi_configure_cs_pin(_cs);
 			pcs_command = pcs_data | spi_configure_cs_pin(_rs);
 			SIM_SCGC6 |= SIM_SCGC6_SPI0;
-			SPI0.MCR = SPI_MCR_MDIS | SPI_MCR_HALT;
-			SPI0.CTAR0 = ctar | SPI_CTAR_FMSZ(7);
-			SPI0.CTAR1 = ctar | SPI_CTAR_FMSZ(15);
-			SPI0.MCR = SPI_MCR_MSTR | SPI_MCR_PCSIS(0x1F) | SPI_MCR_CLR_TXF | SPI_MCR_CLR_RXF;
+			KINETISK_SPI0.MCR = SPI_MCR_MDIS | SPI_MCR_HALT;
+			KINETISK_SPI0.CTAR0 = ctar | SPI_CTAR_FMSZ(7);
+			KINETISK_SPI0.CTAR1 = ctar | SPI_CTAR_FMSZ(15);
+			KINETISK_SPI0.MCR = SPI_MCR_MSTR | SPI_MCR_PCSIS(0x1F) | SPI_MCR_CLR_TXF | SPI_MCR_CLR_RXF;
 		}
 	} else {
 		hwSPI = false;

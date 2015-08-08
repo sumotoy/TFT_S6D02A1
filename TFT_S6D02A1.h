@@ -4,7 +4,7 @@ Samsung S6D02A1 TFT displays as those:
 http://www.ebay.com/itm/370987651121
 http://www.ebay.com/itm/141341180758
 
-Version 1.0b4
+Version 1.0b5
 
 Added early experimental support for SPI transaction!
 The support it's basic and not optimized but let you
